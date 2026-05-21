@@ -63,7 +63,7 @@ jobs:
           ./gradlew build --no-daemon
 
       # -------------------------------------------------------------
-      # NEW STEP: Upload the compiled app as a downloadable artifact
+      # NEW STEP: Upload the compiled app as a downloadable artifacts
       # -------------------------------------------------------------
       - name: Upload App Artifact
         if: steps.check.outputs.run_build == 'true'
