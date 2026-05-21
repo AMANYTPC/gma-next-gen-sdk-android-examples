@@ -62,6 +62,20 @@ jobs:
           cd ${{ matrix.path }}
           ./gradlew build --no-daemon
 
+      # -------------------------------------------------------------
+      # NEW STEP: Upload the compiled app as a downloadable artifact
+      # -------------------------------------------------------------
+      - name: Upload App Artifact
+        if: steps.check.outputs.run_build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-build-${{ matrix.name }}
+          # The paths below catch both standard Android APKs and standard Java JARs.
+          # You can remove the one you don't need.
+          path: |
+            ${{ matrix.path }}/app/build/outputs/apk/**/*.apk
+            ${{ matrix.path }}/build/libs/*.jar
+
       - name: Build skipped
         if: steps.check.outputs.run_build == 'false'
         run: echo "Skipped. No changes detected in ${{ matrix.path }}/"
