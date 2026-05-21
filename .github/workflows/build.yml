@@ -24,49 +24,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for changes
-        id: check
-        run: |
-          # Determine the commit to compare against.
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            BASE="origin/${GITHUB_BASE_REF}"
-          else
-            BASE="${{ github.event.before }}"
-          fi
-
-          # Check for changes in the specific project path.
-          if git diff --quiet "$BASE" HEAD -- "${{ matrix.path }}"; then
-            echo "No changes detected."
-            echo "run_build=false" >> $GITHUB_OUTPUT
-          else
-            echo "Changes detected."
-            git diff --name-only "$BASE" HEAD -- "${{ matrix.path }}"
-            echo "run_build=true" >> $GITHUB_OUTPUT
-          fi
-
       - name: Set up JDK 17
-        if: steps.check.outputs.run_build == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Set up gradle
-        if: steps.check.outputs.run_build == 'true'
         uses: gradle/gradle-build-action@v3
 
       - name: Build ${{ matrix.path }}
-        if: steps.check.outputs.run_build == 'true'
         run: |
           echo "Building ${{ matrix.path }}..."
           cd ${{ matrix.path }}
           ./gradlew build --no-daemon
 
-      # -------------------------------------------------------------
-      # NEW STEP: Upload the compiled app as a downloadable artifacts
-      # -------------------------------------------------------------
       - name: Upload App Artifact
-        if: steps.check.outputs.run_build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: app-build-${{ matrix.name }}
@@ -75,7 +48,3 @@ jobs:
           path: |
             ${{ matrix.path }}/app/build/outputs/apk/**/*.apk
             ${{ matrix.path }}/build/libs/*.jar
-
-      - name: Build skipped
-        if: steps.check.outputs.run_build == 'false'
-        run: echo "Skipped. No changes detected in ${{ matrix.path }}/"
